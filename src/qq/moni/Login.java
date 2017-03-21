@@ -147,7 +147,6 @@ public class Login {
          System.out.println("检查是否登录成：Executing request " + httpget.getURI());//开始
          String html="";
          try {	
-        	//httpget.setHeader("Set-Cookie", header.toString());
         	 httpget.addHeader("Referer", "https://ui.ptlogin2.qq.com/cgi-bin/login?daid=164&target=self&style=16&mibao_css=m_webqq&appid=501004106&enable_qlogin=0&no_verifyimg=1&s_url=http%3A%2F%2Fw.qq.com%2Fproxy.html&f_url=loginerroralert&strong_login=1&login_state=10&t=20131024001");
              CloseableHttpResponse response = httpclient.execute(httpget);
              System.out.println(response.getStatusLine());
@@ -218,8 +217,6 @@ public class Login {
 		} catch (IOException e) {
             e.printStackTrace();
         }
-        
-        
     }*/
     
     public CloseableHttpClient getpsessionid(CloseableHttpClient httpclient)
@@ -292,8 +289,7 @@ public class Login {
               
                 if(html.length()>176)
                 {
-                	
-                	//{"errmsg":"error!!!","retcode":103} 需要重新登录
+                	//{"errmsg":"error!!!","retcode":103} 需要重新登录，如果一直返回103，则需要用改QQ登录w.qq.com，然后点击退出登录，在重新扫码即可
                     if(0 == retcode) {
                     	//
                     	JSONArray resultArray = (JSONArray) jsonObj.get("result");
@@ -306,7 +302,7 @@ public class Login {
                     	String msg_id = valueObj.getString("msg_id");
                     	JSONArray jsonArray = (JSONArray) valueObj.get("content");
                     	String msg = jsonArray.getString(1);
-                    	sendmsg(httpclient, poll_type, msg_id, from_uin, msg);//小黄鸡鸡，不想接入删除即可
+                    	sendmsg(httpclient, poll_type, msg_id, from_uin, msg);
                     }
                     
                  /*   String group_code=HttpTool.getgroup_code(html);//判断群
@@ -330,7 +326,7 @@ public class Login {
     //sendmsg(httpclient, msg_type, msg_id, from_uin, msg);//小黄鸡鸡，不想接入删除即可
     public void sendmsg(CloseableHttpClient httpclient, String msg_type, String msg_id, String from_uin, String sms)
     {
-        HttpPost httppost = new HttpPost();//new HttpPost("http://d1.web2.qq.com/channel/send_buddy_msg2");//
+        HttpPost httppost = new HttpPost();
         httppost.setHeader("Content-Type","application/x-www-form-urlencoded");
         httppost.setHeader("Origin","http://d1.web2.qq.com");
         httppost.setHeader("Referer","http://d1.web2.qq.com/proxy.html?v=20151105001&callback=1&id=2");
@@ -338,15 +334,12 @@ public class Login {
         String html;
          List<NameValuePair> formparams = new ArrayList<NameValuePair>();
          if("message".equals(msg_type)) {//好友消息
-        	 //httppost = new HttpPost(URL_SEND_FRIEND);
-        	 httppost.setURI(URI.create(URL_SEND_FRIEND));//URL_SEND_FRIEND
+        	 httppost.setURI(URI.create(URL_SEND_FRIEND));
         	 formparams.add(new BasicNameValuePair("r","{\"to\":"+from_uin+",\"content\":\"[\\\""+sms+"\\\",[\\\"font\\\",{\\\"name\\\":\\\"宋体\\\",\\\"size\\\":10,\\\"style\\\":[0,0,0],\\\"color\\\":\\\"000000\\\"}]]\",\"face\":165,\"clientid\":53999199,\"msg_id\":"+msg_id+",\"psessionid\":\""+this.psessionid+"\"}"));
          } else if("group_message".equals(msg_type)) {//群消息
-        	 //httppost = new HttpPost(URL_SEND_GROUP);
         	 httppost.setURI(URI.create(URL_SEND_GROUP));
         	 formparams.add(new BasicNameValuePair("r","{\"group_uin\":"+from_uin+",\"content\":\"[\\\""+sms+"\\\",[\\\"font\\\",{\\\"name\\\":\\\"宋体\\\",\\\"size\\\":10,\\\"style\\\":[0,0,0],\\\"color\\\":\\\"000000\\\"}]]\",\"face\":165,\"clientid\":53999199,\"msg_id\":"+msg_id+",\"psessionid\":\""+this.psessionid+"\"}"));
          } else if("discu_message".equals(msg_type)) {//讨论组消息
-        	 //httppost = new HttpPost(URL_SEND_DISCU);
         	 httppost.setURI(URI.create(URL_SEND_DISCU));
         	 formparams.add(new BasicNameValuePair("r","{\"did\":"+from_uin+",\"content\":\"[\\\""+sms+"\\\",[\\\"font\\\",{\\\"name\\\":\\\"宋体\\\",\\\"size\\\":10,\\\"style\\\":[0,0,0],\\\"color\\\":\\\"000000\\\"}]]\",\"face\":165,\"clientid\":53999199,\"msg_id\":"+msg_id+",\"psessionid\":\""+this.psessionid+"\"}"));
          }
