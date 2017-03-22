@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="D:/lib/QQjar/commons-lang3-3.5.jar"/>
+	<classpathentry kind="lib" path="D:/lib/QQjar/commons-io-1.3.2.jar"/>
+	<classpathentry kind="lib" path="D:/lib/QQjar/fastjson-1.2.2.jar"/>
+	<classpathentry kind="lib" path="D:/lib/QQjar/httpasyncclient-4.0-beta3.jar"/>
+	<classpathentry kind="lib" path="D:/lib/QQjar/log4j.jar"/>
+	<classpathentry kind="lib" path="D:/lib/QQjar/slf4j-api-1.7.12.jar"/>
+	<classpathentry kind="lib" path="D:/lib/httpclient-4.5所需jar包/commons-codec-1.9.jar"/>
+	<classpathentry kind="lib" path="D:/lib/httpclient-4.5所需jar包/commons-logging-1.2.jar"/>
+	<classpathentry kind="lib" path="D:/lib/httpclient-4.5所需jar包/httpclient-4.5.jar"/>
+	<classpathentry kind="lib" path="D:/lib/httpclient-4.5所需jar包/httpclient-cache-4.5.jar"/>
+	<classpathentry kind="lib" path="D:/lib/httpclient-4.5所需jar包/httpclient-win-4.5.jar"/>
+	<classpathentry kind="lib" path="D:/lib/httpclient-4.5所需jar包/httpcore-4.4.1.jar"/>
+	<classpathentry kind="lib" path="D:/lib/httpclient-4.5所需jar包/httpmime-4.5.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

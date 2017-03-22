@@ -25,52 +25,34 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
+import qq.moni.entity.Params;
+import qq.moni.entity.QQMsg;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
 public class Login {
 
-	/**
-	 * 获取好友
-	 */
-	public static final String URL_GET_FRIEND_INFO = "http://s.web2.qq.com/api/get_user_friends2";
-	/**
-	 * 陌生人
-	 */
-	public static final String URL_GET_STRANGER_INFO = "http://s.web2.qq.com/api/get_stranger_info2";
-	/**
-	 * 获取群
-	 */
-	public static final String URL_GET_GROUP_NAME_LIST = "http://s.web2.qq.com/api/get_group_name_list_mask2";
-	
-	/**
-	 * 发送消息给好友
-	 */
-	public static final String URL_SEND_FRIEND = "http://d1.web2.qq.com/channel/send_buddy_msg2";
-	/**
-	 * 发送消息给群
-	 */
-	public static final String URL_SEND_GROUP = "http://d1.web2.qq.com/channel/send_qun_msg2";
-	/**
-	 * 发送消息给讨论组
-	 */
-	public static final String URL_SEND_DISCU = "http://d1.web2.qq.com/channel/send_discu_msg2";
-	/**
-	 * 发消息给好友、群发、讨论组时用的referer
-	 */
-	public static final String URL_SEND_REFERER = "http://d1.web2.qq.com/proxy.html?v=20151105001&callback=1&id=2";
 			
 	private boolean loginflag=false;
     private String ptuiCBurl="";
     private String ptwebqq="";
     private String psessionid="";
-    private String clientid="";
     private String aid="";
     private String iamgeImg="D:\\jj";
     private Header[] header = null;
-    private Cookie[] cookie = null;
     private String qrsig = "";
-    private String vfwebqq = "";
+    static Params params;
+    static QQMsg qqMsg;
+    public Login() {
+		// TODO Auto-generated constructor stub
+    	if(null == qqMsg) {
+    		qqMsg = new QQMsg();
+    	}
+    	if(null == params) {
+    		params = new Params();
+    	}
+	}
     public CloseableHttpClient pagemain()
     {
          CloseableHttpClient httpclient = HttpClients.createDefault();
@@ -162,8 +144,9 @@ public class Login {
                  this.ptuiCBurl=html.substring(start, end+12);
                  System.out.println(this.ptuiCBurl);
                  HttpTool hp=new HttpTool();
-                 this.ptwebqq=hp.getCookie("ptwebqq", response);
-                 System.out.println("this.ptwebqq:"+this.ptwebqq);
+                 //this.ptwebqq=hp.getCookie("ptwebqq", response);
+                 params.setPtwebqq(hp.getCookie("ptwebqq", response));
+                 System.out.println("this.ptwebqq:"+params.getPtwebqq());
              }
 
              System.out.println(html);
@@ -244,7 +227,8 @@ public class Login {
              html=html.substring(start);
              int end=html.indexOf("\"");
              html=html.substring(0, end);
-             this.psessionid=html;
+             //this.psessionid=html;
+             params.setPsessionid(html);
              System.out.println(html);
          } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
@@ -257,116 +241,7 @@ public class Login {
          return httpclient;
     }
     
-    /**
-     * 获得消息 需要对Header进行设置！
-     * @param httpclient
-     */
-    public String getmsg(CloseableHttpClient httpclient)
-    {
-
-            HttpPost httppost = new HttpPost("http://d1.web2.qq.com/channel/poll2");
-            //URI.create(URL_GET_STRANGER_INFO)
-            String html="";
-            httppost.setHeader("Content-Type","application/x-www-form-urlencoded");
-            httppost.setHeader("charset","UTF-8");
-            httppost.setHeader("Origin","http://d1.web2.qq.com");
-            httppost.setHeader("Referer","http://d1.web2.qq.com/proxy.html?v=20151105001&callback=1&id=2");
-            //httppost.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36");
-            List<NameValuePair> formparams = new ArrayList<NameValuePair>();  
-            formparams.add(new BasicNameValuePair("r","{\"ptwebqq\":\""+this.ptwebqq+"\",\"clientid\":53999199,\"psessionid\":\""+this.psessionid+"\",\"key\":\"\"}"));
-            UrlEncodedFormEntity uefEntity;
-            try {
-                uefEntity = new UrlEncodedFormEntity(formparams, "UTF-8");
-                httppost.setEntity(uefEntity);  
-                System.out.println("executing request " + httppost.getURI());  
-                HttpResponse response =  httpclient.execute(httppost);
-                HttpEntity entity = response.getEntity();  
-                html=EntityUtils.toString(entity, "utf-8");   
-                System.out.println("----->"+html+"\t"+html.length());
-                
-                JSONObject jsonObj = (JSONObject) JSONObject.parse(html);
-                int retcode = jsonObj.getIntValue("retcode");
-              
-                if(html.length()>176)
-                {
-                	//{"errmsg":"error!!!","retcode":103} 需要重新登录，如果一直返回103，则需要用改QQ登录w.qq.com，然后点击退出登录，在重新扫码即可
-                    if(0 == retcode) {
-                    	//
-                    	JSONArray resultArray = (JSONArray) jsonObj.get("result");
-                    	JSONObject resultJson = (JSONObject) resultArray.get(0);
-                    	
-                    	String poll_type = resultJson.getString("poll_type");
-                    	JSONObject valueObj = (JSONObject) resultJson.get("value");
-                    	String from_uin = valueObj.getString("from_uin");
-                    	String msg_type = valueObj.getString("msg_type");
-                    	String msg_id = valueObj.getString("msg_id");
-                    	JSONArray jsonArray = (JSONArray) valueObj.get("content");
-                    	String msg = jsonArray.getString(1);
-                    	sendmsg(httpclient, poll_type, msg_id, from_uin, msg);
-                    }
-                    
-                 /*   String group_code=HttpTool.getgroup_code(html);//判断群
-                    System.out.println("group_code:"+group_code);
-                    String msg=HttpTool.getmsgtext(html);
-                    String sendsms=Robot.postsms(msg);
-                    sendmsg(httpclient,sendsms,group_code);//小黄鸡鸡，不想接入删除即可
-                    */
-
-                }
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }  
-            catch (ClientProtocolException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return html;
-    }
-    //sendmsg(httpclient, msg_type, msg_id, from_uin, msg);//小黄鸡鸡，不想接入删除即可
-    public void sendmsg(CloseableHttpClient httpclient, String msg_type, String msg_id, String from_uin, String sms)
-    {
-        HttpPost httppost = new HttpPost();
-        httppost.setHeader("Content-Type","application/x-www-form-urlencoded");
-        httppost.setHeader("Origin","http://d1.web2.qq.com");
-        httppost.setHeader("Referer","http://d1.web2.qq.com/proxy.html?v=20151105001&callback=1&id=2");
-    //  httppost.setHeader("User-Agent", "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.93 Safari/537.36");
-        String html;
-         List<NameValuePair> formparams = new ArrayList<NameValuePair>();
-         if("message".equals(msg_type)) {//好友消息
-        	 httppost.setURI(URI.create(URL_SEND_FRIEND));
-        	 formparams.add(new BasicNameValuePair("r","{\"to\":"+from_uin+",\"content\":\"[\\\""+sms+"\\\",[\\\"font\\\",{\\\"name\\\":\\\"宋体\\\",\\\"size\\\":10,\\\"style\\\":[0,0,0],\\\"color\\\":\\\"000000\\\"}]]\",\"face\":165,\"clientid\":53999199,\"msg_id\":"+msg_id+",\"psessionid\":\""+this.psessionid+"\"}"));
-         } else if("group_message".equals(msg_type)) {//群消息
-        	 httppost.setURI(URI.create(URL_SEND_GROUP));
-        	 formparams.add(new BasicNameValuePair("r","{\"group_uin\":"+from_uin+",\"content\":\"[\\\""+sms+"\\\",[\\\"font\\\",{\\\"name\\\":\\\"宋体\\\",\\\"size\\\":10,\\\"style\\\":[0,0,0],\\\"color\\\":\\\"000000\\\"}]]\",\"face\":165,\"clientid\":53999199,\"msg_id\":"+msg_id+",\"psessionid\":\""+this.psessionid+"\"}"));
-         } else if("discu_message".equals(msg_type)) {//讨论组消息
-        	 httppost.setURI(URI.create(URL_SEND_DISCU));
-        	 formparams.add(new BasicNameValuePair("r","{\"did\":"+from_uin+",\"content\":\"[\\\""+sms+"\\\",[\\\"font\\\",{\\\"name\\\":\\\"宋体\\\",\\\"size\\\":10,\\\"style\\\":[0,0,0],\\\"color\\\":\\\"000000\\\"}]]\",\"face\":165,\"clientid\":53999199,\"msg_id\":"+msg_id+",\"psessionid\":\""+this.psessionid+"\"}"));
-         }
-         
-         System.out.println("发送的参数r："+formparams.get(0).getValue());
-         UrlEncodedFormEntity uefEntity;
-         try {
-        	 uefEntity = new UrlEncodedFormEntity(formparams, "UTF-8");
-             httppost.setEntity(uefEntity);  
-             System.out.println("executing request " + httppost.getURI());  
-             HttpResponse response =  httpclient.execute(httppost);
-             HttpEntity entity = response.getEntity();  
-             html=EntityUtils.toString(entity, "utf-8");   
-             System.out.println(html);
-         } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }  
-         catch (ClientProtocolException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
     private void reLogin(CloseableHttpClient httpclient) {
-    	
-    	
     	
     }
     /**
@@ -398,11 +273,26 @@ public class Login {
         httpclient=lg.getPara(httpclient);
         //lg.getVfwebqq(httpclient);
         httpclient=lg.getpsessionid(httpclient);
-        for(int i=0;;i++)
-        {
-            lg.getmsg(httpclient);
-        }
+        qqMsg.getmsg(httpclient, params);
 
     }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+	public Params getParams() {
+		return params;
+	}
+	public void setParams(Params params) {
+		this.params = params;
+	}
+    
 }
 
