@@ -202,6 +202,11 @@ public class Login {
         }
     }*/
     
+    /**
+     * 第二次登录
+     * @param httpclient
+     * @return
+     */
     public CloseableHttpClient getpsessionid(CloseableHttpClient httpclient)
     {
         HttpPost httppost = new HttpPost("http://d1.web2.qq.com/channel/login2");
@@ -250,6 +255,7 @@ public class Login {
      *      即想本程序正常运行，需要先打开浏览器登录smart qq，然后再用本程序登陆，本程序登陆后
      *      就不用管用浏览器登录的那个了。市面上很多模拟登陆都存在这个问题哦，不止我的，这是cookie
      *      跨域了还是咋地，搞不懂
+     *  现在好像没有这个问题了
      * @param args
      */
     public static void main(String[] args)
@@ -260,7 +266,7 @@ public class Login {
         for(int i=0;;i++)
         {
             try {
-                Thread.sleep(3000);
+                Thread.sleep(3000); 
             } catch (InterruptedException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();

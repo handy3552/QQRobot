@@ -16,7 +16,9 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
+import qq.moni.Api;
 import qq.moni.QQConstants;
+import qq.moni.Robot;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -69,16 +71,22 @@ public class QQMsg {
                     System.out.println("----->"+html+"\t"+html.length());
                     
                     JSONObject jsonObj = (JSONObject) JSONObject.parse(html);
-                    int retcode = jsonObj.getIntValue("retcode");
-                    if(103 == retcode) {
-                    	pollFlag = false;
-                    	System.out.println("error!!!---130");
-                    	break;
-                    }
-                    if(html.length()>176)
-                    {
+                    
+                    int retcode = 0;
+                    if(176 > html.length()) {
+                    	retcode = jsonObj.getIntValue("retcode");
+                    	if(103 == retcode) {
+                        	pollFlag = false;
+                        	System.out.println("error!!!---130");
+                        	break;
+                        }
+                    } else if(176 == html.length()) {
+                    	System.out.println("error!!!---176");
+                    	
+                    }else if(html.length() > 176) {
                     	//{"errmsg":"error!!!","retcode":103} 需要重新登录，如果一直返回103，则需要用改QQ登录w.qq.com，然后点击退出登录，在重新扫码即可
-                        if(0 == retcode) {
+                    	retcode = jsonObj.getIntValue("retcode");
+                    	if(0 == retcode) {
                         	//
                         	JSONArray resultArray = (JSONArray) jsonObj.get("result");
                         	JSONObject resultJson = (JSONObject) resultArray.get(0);
@@ -89,12 +97,12 @@ public class QQMsg {
                         	setFrom_uin(valueObj.getString("from_uin"));
                         	setMsg_id(valueObj.getString("msg_type"));
                         	setMsg_id(valueObj.getString("msg_id"));
-                        	JSONArray jsonArray = (JSONArray) valueObj.get("content");
-                        	setMsg(jsonArray.getString(1));
                         	if("group_message".equals(poll_type)) {
                         		setSend_uin(valueObj.getString("send_uin"));
                         		setGroup_code(valueObj.getString("group_code"));
                         	}
+                        	JSONArray jsonArray = (JSONArray) valueObj.get("content");
+                        	setMsg(Api.getMsg(jsonArray.getString(1)));
                         	sendmsg(httpclient, params);
                         }
                         
